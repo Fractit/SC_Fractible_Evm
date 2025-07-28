@@ -14,13 +14,7 @@ contract CounterTest is Test {
     function setUp() public {
         vm.startPrank(owner);
         MockToken mockUsdc = new MockToken(owner, 1000000000e6);
-        Fractible fractibleContract = new Fractible(
-            owner,
-            address(mockUsdc),
-            "FVH",
-            "FVH",
-            645105e6
-        );
+        Fractible fractibleContract = new Fractible(owner, address(mockUsdc), "FVH", "FVH", 18);
         usdc = address(mockUsdc);
         fractible = address(fractibleContract);
     }

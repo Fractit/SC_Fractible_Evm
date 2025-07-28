@@ -9,9 +9,9 @@ contract Fractible is ERC20 {
 
     address public depositToken;
     uint256 public constant price = 1;
-    uint256 public max_mint;
 
-    bool public pause;
+    bool public pause = true;
+    bool public pauseMint;
 
     uint8 decimal;
 
@@ -20,14 +20,11 @@ contract Fractible is ERC20 {
         address _depositToken,
         string memory _tokenName,
         string memory _tokenSymbol,
-        uint8 _decimal,
-        uint256 _maxMint
+        uint8 _decimal
     ) ERC20(_tokenName, _tokenSymbol) {
         owner = _owner;
         depositToken = _depositToken;
-        max_mint = _maxMint;
         decimal = _decimal;
-        pause = true;
     }
 
     function decimals() public view virtual override returns (uint8) {
@@ -35,9 +32,7 @@ contract Fractible is ERC20 {
     }
 
     function deposit(uint256 _amount) public returns (uint256) {
-        uint256 current_supply = totalSupply();
-
-        require(current_supply + _amount <= max_mint, "Deposit more than Max");
+        require(!pauseMint, "Minting is paused");
         IERC20(depositToken).transferFrom(msg.sender, address(this), _amount);
 
         _mint(msg.sender, _amount);
@@ -45,9 +40,14 @@ contract Fractible is ERC20 {
         return _amount;
     }
 
-    function pauseWithdraw(bool _pause) public {
+    function pauseUnpauseWithdraw(bool _pause) public {
         require(msg.sender == owner, "You are not the Owner");
         pause = _pause;
+    }
+
+    function pauseUnpauseMint(bool _pause) public {
+        require(msg.sender == owner, "You are not the Owner");
+        pauseMint = _pause;
     }
 
     function withdraw(uint256 _amount) public returns (uint256) {

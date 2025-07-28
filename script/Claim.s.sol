@@ -7,8 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Claim is Script {
     address public pUsd = 0xdddD73F5Df1F0DC31373357beAC77545dC5A6f3F;
-    Fractible public fvh =
-        Fractible(0x618608Ae57ca16Ca6B3A4A08F8ab6144DCD887b8);
+    Fractible public fvh = Fractible(0x618608Ae57ca16Ca6B3A4A08F8ab6144DCD887b8);
 
     function setUp() public {}
 
