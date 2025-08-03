@@ -53,7 +53,7 @@ contract Fractible is ERC20 {
     function withdraw(uint256 _amount) public returns (uint256) {
         require(!pause, "Withdrawals are paused");
         uint256 userBalance = balanceOf(msg.sender);
-        require(_amount >= userBalance, "Withdrawing more than Balance");
+        require(_amount <= userBalance, "Withdrawing more than Balance");
         _burn(msg.sender, _amount);
 
         IERC20(depositToken).transfer(msg.sender, _amount);
