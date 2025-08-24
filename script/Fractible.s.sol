@@ -17,13 +17,7 @@ contract FractibleScript is Script {
         console.log("deployer is", deployer);
 
         vm.startBroadcast(privateKey);
-        Fractible fr_contract = new Fractible(
-            deployer,
-            pUsd,
-            "FLEET",
-            "FLEET",
-            6
-        );
+        Fractible fr_contract = new Fractible(deployer, pUsd, "FLEET", "FLEET", 6);
         fvh = address(fr_contract);
 
         console.log("address of contract is ", address(fvh));
