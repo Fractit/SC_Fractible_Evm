@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "forge-std/console.sol";
 
 contract Fractible is
     Initializable,
@@ -14,12 +15,18 @@ contract Fractible is
     UUPSUpgradeable,
     OwnableUpgradeable
 {
+    address public admin;
     bool public isPause;
 
     uint256 public price;
     uint256 public priceDecimals;
 
     mapping(address => bool) public depositTokens;
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can call this function");
+        _;
+    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -30,14 +37,19 @@ contract Fractible is
         address _owner,
         address _depositToken,
         string memory _tokenName,
-        string memory _tokenSymbol
+        string memory _tokenSymbol,
+        uint256 _price,
+        uint256 _priceDecimals
     ) public initializer {
         __ERC20_init(_tokenName, _tokenSymbol);
         __UUPSUpgradeable_init();
         __Ownable_init(_owner);
 
+        admin = msg.sender;
         depositTokens[_depositToken] = true;
         isPause = false;
+        price = _price;
+        priceDecimals = _priceDecimals;
     }
 
     function deposit(
@@ -72,26 +84,26 @@ contract Fractible is
         return mintTokens;
     }
 
-    function changePrice(uint256 _price, uint256 _decimals) public onlyOwner {
+    function changePrice(uint256 _price, uint256 _decimals) public onlyAdmin {
         price = _price;
         priceDecimals = _decimals;
     }
 
-    function addDepositToken(address _token) public onlyOwner {
+    function addDepositToken(address _token) public onlyAdmin {
         depositTokens[_token] = true;
     }
-    function removeDepositToken(address _token) public onlyOwner {
+    function removeDepositToken(address _token) public onlyAdmin {
         depositTokens[_token] = false;
     }
 
-    function pauseUnpauseMint(bool _pause) public onlyOwner {
+    function pauseUnpauseMint(bool _pause) public onlyAdmin {
         isPause = _pause;
     }
 
-    function claim(address _token) public onlyOwner returns (uint256) {
+    function claim(address _token) public onlyAdmin returns (uint256) {
         uint256 contractBalance = IERC20(_token).balanceOf(address(this));
 
-        IERC20(_token).transfer(owner(), contractBalance);
+        IERC20(_token).transfer(admin, contractBalance);
 
         return contractBalance;
     }
