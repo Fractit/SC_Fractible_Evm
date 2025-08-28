@@ -89,18 +89,18 @@ contract Fractible is
         priceDecimals = _decimals;
     }
 
-    function addDepositToken(address _token) public onlyAdmin {
+    function addDepositToken(address _token) public onlyOwner {
         depositTokens[_token] = true;
     }
-    function removeDepositToken(address _token) public onlyAdmin {
+    function removeDepositToken(address _token) public onlyOwner {
         depositTokens[_token] = false;
     }
 
-    function pauseUnpauseMint(bool _pause) public onlyAdmin {
+    function pauseUnpauseMint(bool _pause) public onlyOwner {
         isPause = _pause;
     }
 
-    function claim(address _token) public onlyAdmin returns (uint256) {
+    function claim(address _token) public onlyOwner returns (uint256) {
         uint256 contractBalance = IERC20(_token).balanceOf(address(this));
 
         IERC20(_token).transfer(admin, contractBalance);
