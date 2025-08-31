@@ -195,6 +195,24 @@ contract CounterTest is Test {
         assert(impl != oldImpl);
     }
 
+    function test_fuzz_changePrice(uint256 _price, uint256 _decimals) public {
+        vm.assume(_price > 100 && _price < 1e12);
+        vm.assume(_decimals > 100 && _decimals < 1e12);
+        Fractible(fractible).changePrice(_price, _decimals);
+        uint256 price = Fractible(fractible).price();
+        uint256 decimals = Fractible(fractible).priceDecimals();
+        assert(price == _price);
+        assert(decimals == _decimals);
+    }
+
+    function test_fuzz_deposit(uint256 _amount) public {
+        vm.assume(_amount > 1e3 && _amount < 1e12); // between 0.001 USDC to 1 million USDC
+        IERC20(usdc).approve(fractible, _amount);
+        uint256 mintAmount = Fractible(fractible).deposit(_amount, usdc);
+        uint256 balance = Fractible(fractible).balanceOf(owner);
+        assert(balance == mintAmount);
+    }
+
     function getImplementation(
         address _contract
     ) public view returns (address) {
