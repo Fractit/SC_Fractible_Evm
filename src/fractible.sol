@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "forge-std/console.sol";
 
@@ -15,6 +16,8 @@ contract Fractible is
     UUPSUpgradeable,
     OwnableUpgradeable
 {
+    using SafeERC20 for IERC20;
+
     address public admin;
     bool public isPause;
 
@@ -76,15 +79,17 @@ contract Fractible is
         uint256 scaledAmount = (_amount * (10 ** decimals())) /
             (10 ** tokenDecimals);
 
-        uint256 mintTokens = scaledAmount * (price / priceDecimals);
+        uint256 mintTokens = ((scaledAmount * price) / priceDecimals);
 
-        IERC20(_token).transferFrom(msg.sender, address(this), _amount);
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         _mint(msg.sender, mintTokens);
 
         return mintTokens;
     }
 
     function changePrice(uint256 _price, uint256 _decimals) public onlyAdmin {
+        require(_price > 0, "Price must be greater than zero");
+        require(_decimals > 0, "Decimals must be greater than zero");
         price = _price;
         priceDecimals = _decimals;
     }
@@ -103,7 +108,7 @@ contract Fractible is
     function claim(address _token) public onlyOwner returns (uint256) {
         uint256 contractBalance = IERC20(_token).balanceOf(address(this));
 
-        IERC20(_token).transfer(admin, contractBalance);
+        IERC20(_token).safeTransfer(admin, contractBalance);
 
         return contractBalance;
     }
@@ -116,4 +121,6 @@ contract Fractible is
             "New implementation is the zero address"
         );
     }
+
+    uint256[40] private __gap;
 }

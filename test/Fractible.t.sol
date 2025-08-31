@@ -147,4 +147,61 @@ contract CounterTest is Test {
         vm.expectRevert();
         uint256 claimed = Fractible(fractible).claim(usdc);
     }
+
+    function test_deposit_zeroAmount() public {
+        vm.expectRevert();
+        Fractible(fractible).deposit(0, usdc);
+    }
+
+    function test_price_zeroAmount() public {
+        vm.expectRevert();
+        Fractible(fractible).changePrice(0, 100);
+    }
+
+    function test_price_zeroDecimals() public {
+        vm.expectRevert();
+        Fractible(fractible).changePrice(100, 0);
+    }
+
+    function test_Depoist_PriceDecrease() public {
+        Fractible(fractible).changePrice(200, 100); // 1 usdc = 2 FLEET
+        IERC20(usdc).approve(fractible, 100e6);
+        uint256 mintAmount = Fractible(fractible).deposit(100e6, usdc);
+        assert(mintAmount == 200e6); //because the price is half
+    }
+
+    function test_Depoist_PriceIncrease() public {
+        Fractible(fractible).changePrice(50, 100); // 1 usdc = 0.5 FLEET
+        IERC20(usdc).approve(fractible, 100e6);
+        uint256 mintAmount = Fractible(fractible).deposit(100e6, usdc);
+        assert(mintAmount == 50e6); //because the price is double
+    }
+
+    function test_upgradeContract_notOwner() public {
+        vm.stopPrank();
+        vm.prank(address(1));
+        Fractible fractibleImpl2 = new Fractible();
+        vm.expectRevert();
+        Fractible(fractible).upgradeToAndCall(address(fractibleImpl2), "");
+    }
+
+    function test_upgradeContract_Owner() public {
+        address oldImpl = getImplementation(fractible);
+
+        Fractible fractibleImpl2 = new Fractible();
+        Fractible(fractible).upgradeToAndCall(address(fractibleImpl2), "");
+        address impl = getImplementation(fractible);
+        assert(impl == address(fractibleImpl2));
+        assert(impl != oldImpl);
+    }
+
+    function getImplementation(
+        address _contract
+    ) public view returns (address) {
+        bytes32 slot = bytes32(
+            uint256(keccak256("eip1967.proxy.implementation")) - 1
+        );
+        address impl = address(uint160(uint256(vm.load(_contract, slot))));
+        return impl;
+    }
 }
